@@ -67,18 +67,27 @@ const runQuery = async (query) => {
         const result = await sql.query`
             USE DB_SISF;
                 ${query}
-            `
+           `
         console.log('done')
+        return result.recordset
     } catch (error) {
         console.log(error)
     }
 }
+let i = 0
 const run = async () => {
     await sql.connect(config);
     const sqlFilesPath = await getFilesFromDirectory('./querys')
     sqlFilesPath.forEach(async sqlFilePath => {
         const sqlContent = await readSQLFile(sqlFilePath);
-        runQuery(sqlContent)
+        const content = await runQuery(sqlContent)
+        fs.writeFile(`json/result_${i}.json`, JSON.stringify(content), err => {
+            if (err) {
+                console.error(err);
+            } else {
+                console.log('done')
+            }
+        })
     })
 }
 run()
