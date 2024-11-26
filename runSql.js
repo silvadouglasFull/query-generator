@@ -71,22 +71,11 @@ const runQuery = async (query) => {
     }
 }
 
-const combineJsonFiles = async () => {
-    try {
-        const files = await getFilesFromDirectory('./json')
-        files.filter(item => item !== 'query_to_photos.json').forEach(async item => {
-            const content = await readFile(`json/${item}`)
-            const jsonParse = JSON.parse(con)
-        })
-    } catch (error) {
-      console.error('Error combining JSON files:', error);
-    }
-  };
 let i = 0
 const run = async () => {
     try {
         await sql.connect(config);
-
+        const result = []
         const sqlFilesPath = await getFilesFromDirectory('./querys')
         sqlFilesPath.forEach(async sqlFilePath => {
             const sqlContent = await readFile(`querys/${sqlFilePath}`);
@@ -94,15 +83,17 @@ const run = async () => {
                 throw new Error('Erro ao processar o sqlContent')
             }
             const content = await runQuery(String(sqlContent))
-            fs.writeFile(`json/result_${i}.json`, JSON.stringify(content), err => {
-                console.log(err)
+            content.forEach(row => {
+                result.push(row)
             })
-            i = i + 1
         })
-       
+        fs.writeFile(`json/result_${i}.json`, JSON.stringify(result), err => {
+            console.log(err)
+        })
+        i = i + 1
         console.log('done')
     } catch (error) {
         console.log('run', error)
     }
 }
-combineJsonFiles('json','json/FISCALIZACAO_VIAOESTE')
+run()
