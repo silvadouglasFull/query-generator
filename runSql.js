@@ -7,7 +7,7 @@ const config = {
     user: 'usr_sgi',
     password: 'ea#hqXXx73^hF$xX9iomTX',
     server: '10.199.114.73',
-    database: 'master',
+    database: 'DB_SISF',
     options: {
         encrypt: false,
         trustServerCertificate: true,
@@ -43,51 +43,66 @@ const getFilesFromDirectory = (directoryPath) => {
 };
 
 /**
- * Reads a SQL file and returns its content as a string.
+ * Reads a  file and returns its content as a string.
  *
- * @param {string} filePath - The path to the SQL file.
- * @returns {Promise<string>} - A promise that resolves with the content of the SQL file.
+ * @param {string} filePath - The path to the  file.
+ * @returns {Promise<string>} - A promise that resolves with the content of the  file.
  */
-const readSQLFile = async (filePath) => {
+const readFile = async (filePath) => {
     try {
         // Resolve the file path to ensure it's absolute
         const absolutePath = path.resolve(filePath);
 
         // Read the file content
-        const sqlContent = await fs.promises.readFile(absolutePath, 'utf-8');
+        const Content = await fs.promises.readFile(absolutePath, 'utf-8');
 
-        return sqlContent;
+        return Content;
     } catch (error) {
-        console.error('Error reading SQL file:', error);
-        throw error;
+        console.error('Error reading  file:', error);
+        return '';
     }
 }
 const runQuery = async (query) => {
     try {
-        const result = await sql.query`
-            USE DB_SISF;
-                ${query}
-           `
-        console.log('done')
+        const result = await sql.query(query)
         return result.recordset
     } catch (error) {
-        console.log(error)
+        console.log('erro read', error)
     }
 }
+
+const combineJsonFiles = async () => {
+    try {
+        const files = await getFilesFromDirectory('./json')
+        files.filter(item => item !== 'query_to_photos.json').forEach(async item => {
+            const content = await readFile(`json/${item}`)
+            const jsonParse = JSON.parse(con)
+        })
+    } catch (error) {
+      console.error('Error combining JSON files:', error);
+    }
+  };
 let i = 0
 const run = async () => {
-    await sql.connect(config);
-    const sqlFilesPath = await getFilesFromDirectory('./querys')
-    sqlFilesPath.forEach(async sqlFilePath => {
-        const sqlContent = await readSQLFile(sqlFilePath);
-        const content = await runQuery(sqlContent)
-        fs.writeFile(`json/result_${i}.json`, JSON.stringify(content), err => {
-            if (err) {
-                console.error(err);
-            } else {
-                console.log('done')
+    try {
+        await sql.connect(config);
+
+        const sqlFilesPath = await getFilesFromDirectory('./querys')
+        sqlFilesPath.forEach(async sqlFilePath => {
+            const sqlContent = await readFile(`querys/${sqlFilePath}`);
+            if (!sqlContent) {
+                throw new Error('Erro ao processar o sqlContent')
             }
+            const content = await runQuery(String(sqlContent))
+            fs.writeFile(`json/result_${i}.json`, JSON.stringify(content), err => {
+                console.log(err)
+            })
+            i = i + 1
         })
-    })
+       
+        console.log('done')
+    } catch (error) {
+        console.log('run', error)
+    }
 }
-run()
+combineJsonFiles('json','json/FISCALIZACAO_VIAOESTE')

@@ -13592,14 +13592,30 @@ function paginateArray(items, itemsPerPage = 15) {
 }
 const paginatedData = paginateArray(querys);
 let i = 0
-paginatedData.forEach(item => {
-    const content = item.join('UNION')
-    fs.writeFile(`querys/result_${i}.sql`, content, err => {
-        if (err) {
-            console.error(err);
-        } else {
-            console.log('done')
-        }
-    });
-    i = i + 1
-})
+const ped_venda_cods = items.map(item => item['Cód. Fiscalização'])
+const run = () => {
+    try {
+        fs.writeFile('json/query_to_photos.json', JSON.stringify(ped_venda_cods), err => {
+            if (err) {
+                console.error(err);
+            } else {
+                console.log('done')
+            }
+        })
+        paginatedData.forEach(item => {
+            const content = item.join('UNION')
+            fs.writeFile(`querys/result_${i}.sql`, content, err => {
+                if (err) {
+                    console.error(err);
+                } else {
+                    console.log('done')
+                }
+            });
+            i = i + 1
+        })
+        console.log('done')
+    } catch (error) {
+        console.log(error)
+    }
+}
+run()
