@@ -42,14 +42,43 @@ const getFilesFromDirectory = (directoryPath) => {
     });
 };
 
+/**
+ * Reads a SQL file and returns its content as a string.
+ *
+ * @param {string} filePath - The path to the SQL file.
+ * @returns {Promise<string>} - A promise that resolves with the content of the SQL file.
+ */
+const readSQLFile = async (filePath) => {
+    try {
+        // Resolve the file path to ensure it's absolute
+        const absolutePath = path.resolve(filePath);
 
+        // Read the file content
+        const sqlContent = await fs.promises.readFile(absolutePath, 'utf-8');
+
+        return sqlContent;
+    } catch (error) {
+        console.error('Error reading SQL file:', error);
+        throw error;
+    }
+}
+const runQuery = async (query) => {
+    try {
+        const result = await sql.query`
+            USE DB_SISF;
+                ${query}
+            `
+        console.log('done')
+    } catch (error) {
+        console.log(error)
+    }
+}
 const run = async () => {
     await sql.connect(config);
-    const getQuerys = await getFilesFromDirectory('./querys')
-    const result = await sql.query`
-        USE DB_SISF;
-
-        `
-    console.log(getQuerys)
+    const sqlFilesPath = await getFilesFromDirectory('./querys')
+    sqlFilesPath.forEach(async sqlFilePath => {
+        const sqlContent = await readSQLFile(sqlFilePath);
+        runQuery(sqlContent)
+    })
 }
 run()

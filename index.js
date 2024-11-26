@@ -13594,7 +13594,7 @@ const paginatedData = paginateArray(querys);
 let i = 0
 paginatedData.forEach(item => {
     const content = item.join('UNION')
-    fs.writeFile(`query/result_${i}.sql`, content, err => {
+    fs.writeFile(`querys/result_${i}.sql`, content, err => {
         if (err) {
             console.error(err);
         } else {
