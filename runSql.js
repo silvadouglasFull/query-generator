@@ -71,26 +71,28 @@ const runQuery = async (query) => {
     }
 }
 
-let i = 0
 const run = async () => {
     try {
         await sql.connect(config);
         const result = []
         const sqlFilesPath = await getFilesFromDirectory('./querys')
-        sqlFilesPath.forEach(async sqlFilePath => {
+        for (const sqlFilePath of sqlFilesPath) {
             const sqlContent = await readFile(`querys/${sqlFilePath}`);
             if (!sqlContent) {
-                throw new Error('Erro ao processar o sqlContent')
+                continue
             }
             const content = await runQuery(String(sqlContent))
+            if (!content?.length || !Array.isArray(content)) {
+                continue
+            }
             content.forEach(row => {
                 result.push(row)
             })
-        })
-        fs.writeFile(`json/result_${i}.json`, JSON.stringify(result), err => {
+            console.log(result)
+        }
+        fs.writeFile(`json/FISCALIZACAO_VIAOESTE.json`, JSON.stringify(result.sort((a, b) => a.ped_venda_cod - b.ped_venda_cod)), err => {
             console.log(err)
         })
-        i = i + 1
         console.log('done')
     } catch (error) {
         console.log('run', error)
